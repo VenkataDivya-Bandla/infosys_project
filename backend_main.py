@@ -1,12 +1,13 @@
 import os
-from fastapi import FastAPI
-from pydantic import BaseModel
 
 from ingestion import ingest_document
 from retriever import query_documents, load_index
 from memory import ConversationMemory
 
-app = FastAPI()
+# -----------------------------
+# Global initialization
+# -----------------------------
+
 memory = ConversationMemory()
 
 DATA_DIR = "data"
@@ -28,38 +29,25 @@ def ingest_existing_documents():
 # Load FAISS index if exists
 load_index()
 
-# Ingest on startup
+# Ingest documents at startup
 ingest_existing_documents()
 
+# -----------------------------
+# 🔥 STREAMLIT ENTRY FUNCTION
+# -----------------------------
 
-class QueryRequest(BaseModel):
-    q: str
-    session_id: str = "default"
+def query_handler(question: str, session_id: str = "default") -> str:
+    """
+    Handles a user query and returns an answer string.
+    This function is called directly from Streamlit UI.
+    """
+    history = memory.get(session_id)
 
+    result = query_documents(question, history)
 
-@app.post("/query")
-async def query(req: QueryRequest):
-    try:
-        history = memory.get(req.session_id)
+    answer = result.get("answer", "")
+    answer = answer.replace("{ORGANIZATION NAME}", ORG_NAME)
 
-        result = query_documents(req.q, history)
+    memory.add(session_id, question, answer)
 
-        answer = result["answer"]
-        answer = answer.replace("{ORGANIZATION NAME}", ORG_NAME)
-
-        memory.add(req.session_id, req.q, answer)
-
-        return {
-            "answer": answer,
-            "sources": result.get("sources", [])
-        }
-
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/")
-async def root():
-    return {
-        "status": "AI Document Search API is running. Documents are loaded from /data on startup."
-    }
+    return answer

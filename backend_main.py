@@ -36,18 +36,13 @@ ingest_existing_documents()
 # 🔥 STREAMLIT ENTRY FUNCTION
 # -----------------------------
 
-def query_handler(question: str, session_id: str = "default") -> str:
-    """
-    Handles a user query and returns an answer string.
-    This function is called directly from Streamlit UI.
-    """
+def query_handler(question: str, session_id: str) -> str:
     history = memory.get(session_id)
-
     result = query_documents(question, history)
 
-    answer = result.get("answer", "")
+    answer = result["answer"]
     answer = answer.replace("{ORGANIZATION NAME}", ORG_NAME)
 
     memory.add(session_id, question, answer)
-
     return answer
+

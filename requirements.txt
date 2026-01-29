@@ -5,3 +5,4 @@ faiss-cpu
 langchain
 openai
 numpy
+sentence-transformers

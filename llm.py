@@ -1,9 +1,14 @@
-import subprocess
+import os
+from openai import OpenAI
 
 ORG_NAME = "ABC Corp"
 
+# Initialize OpenAI client (key comes from Streamlit Secrets)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 def generate_answer(query, context, history):
+    # Build conversation history
     history_text = ""
     for h in history[-5:]:
         history_text += f"User: {h['q']}\nAssistant: {h['a']}\n"
@@ -34,16 +39,13 @@ User question:
 Answer:
 """
 
-    result = subprocess.run(
-        ["ollama", "run", "llama3", prompt],
-        capture_output=True,
-        text=True
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2,
     )
 
-    if result.returncode != 0:
-        raise RuntimeError(result.stderr)
-
-    answer = result.stdout.strip()
+    answer = response.choices[0].message.content.strip()
     answer = answer.replace("{ORGANIZATION NAME}", ORG_NAME)
 
     return answer

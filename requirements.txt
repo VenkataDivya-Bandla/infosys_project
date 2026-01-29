@@ -1,8 +1,6 @@
 streamlit
+pymupdf
 python-docx
-PyMuPDF
+sentence-transformers
 faiss-cpu
 langchain
-openai
-numpy
-sentence-transformers

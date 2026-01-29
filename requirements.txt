@@ -1,7 +1,7 @@
 streamlit
+python-docx
 PyMuPDF
 faiss-cpu
 langchain
 openai
 numpy
-pandas
